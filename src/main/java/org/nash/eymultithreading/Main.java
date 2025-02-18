@@ -32,9 +32,18 @@ public class Main {
             // Keep the main thread running while workers are processing
         }
 
-        priorityQueue.endOfQueue();
-        executorService.shutdown();
         System.out.println("All tasks are processed!");
+
+        long lastPriority100CompletionTime = WorkerWithPriority.getLastPriority100CompletionTime();
+        long lastPriority0CompletionTime = WorkerWithPriority.getLastPriority0CompletionTime();
+
+        if (lastPriority100CompletionTime != -1 && lastPriority0CompletionTime != -1) {
+            System.out.println("Last priority 100 task completion time: " + lastPriority100CompletionTime + " ms");
+            System.out.println("Last priority 0 task completion time: " + lastPriority0CompletionTime + " ms");
+
+            long timeDifference = lastPriority0CompletionTime - lastPriority100CompletionTime;
+            System.out.println("Priority 100 tasks were completed " + timeDifference + " ms faster than priority 0 tasks.");
+        }
     }
 
     private static void assignmentPart1_2(String[] args) {
