@@ -7,10 +7,84 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         //assignmentPart1_2(args);
 
         //assignmentPart3();
+
+        //assignmentPart4();
+
+        //assignmentPart5();
+    }
+
+    private static void assignmentPart5() throws InterruptedException {
+        int numberOfWorkers = 3;
+        MyBlockingQueue<Integer> blockingQueue = new MyBlockingQueue<>(5);
+        WorkerResponseQueue workerResponseQueue = new WorkerResponseQueue(50);
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfWorkers);
+
+        long startTime = System.currentTimeMillis();
+        for (int i = 100; i <= 1000; i += 100) {
+            blockingQueue.add(i);
+        }
+        for (int i = 0; i < numberOfWorkers; i++) {
+            executorService.submit(new WorkerWithResponse(blockingQueue, workerResponseQueue));
+        }
+        while (!blockingQueue.isEmpty()) {
+            //Wait
+        }
+        long endTimeForPublishing = System.currentTimeMillis();
+        System.out.println("Time taken by main thread to publish tasks: " + (endTimeForPublishing - startTime) + " ms");
+
+        executorService.shutdown();
+
+        double totalSum = 0;
+        while (!workerResponseQueue.isEmpty()) {
+            Double response = workerResponseQueue.pollResponse();
+            if (response != null) {
+                totalSum += response;
+            }
+        }
+
+        System.out.println("Total sum of all worker responses: " + totalSum);
+        long endTimeForProcessing = System.currentTimeMillis();
+        System.out.println("Time taken by background process to finish: " + (endTimeForProcessing - startTime) + " ms");
+        System.out.println("All tasks are processed!");
+    }
+
+    private static void assignmentPart4() {
+        MyBlockingQueue<Integer> blockingQueue = new MyBlockingQueue<>(5);
+
+        int numberOfWorkers = 3;
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfWorkers);
+
+        long startTime = System.currentTimeMillis();
+        for (int i = 100; i <= 10000; i += 100) {
+            try {
+                blockingQueue.add(i);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        for (int i = 0; i < numberOfWorkers; i++) {
+            executorService.submit(new WorkerWithBlockingQueue(blockingQueue));
+        }
+
+        while (!blockingQueue.isEmpty()) {
+            //Wait
+        }
+
+        executorService.shutdown();
+
+        long endTimeForPublishing = System.currentTimeMillis();
+        System.out.println("Time taken by main thread to publish tasks: " + (endTimeForPublishing - startTime) + " ms");
+        while (!executorService.isTerminated()) {
+            // Block until all workers finish
+        }
+        long endTimeForProcessing = System.currentTimeMillis();
+        System.out.println("Time taken by background process to finish: " + (endTimeForProcessing - startTime) + " ms");
+        System.out.println("All tasks are processed!");
     }
 
     private static void assignmentPart3() {
