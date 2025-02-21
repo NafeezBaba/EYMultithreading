@@ -15,6 +15,40 @@ public class Main {
         //assignmentPart4();
 
         //assignmentPart5();
+
+        //DAGAssignment2();
+    }
+
+    private static void DAGAssignment2() throws InterruptedException {
+        MyBlockingQueue<String> requestQueue = new MyBlockingQueue<>(10);
+        MyBlockingQueue<Double> responseQueue = new MyBlockingQueue<>(10);
+        MyBlockingQueue<Node> workerQueue = new MyBlockingQueue<>(10);
+        MyBlockingQueue<Node> workerResponseQueue = new MyBlockingQueue<>(10);
+
+        // Create and start the manager
+        DAGManager manager = new DAGManager(requestQueue, responseQueue, workerQueue, workerResponseQueue);
+        Thread managerThread = new Thread(manager);
+        managerThread.start();
+
+        int numWorkers = 2;
+        for (int i = 0; i < numWorkers; i++) {
+            DAGWorker worker = new DAGWorker(workerQueue, workerResponseQueue);
+            Thread workerThread = new Thread(worker);
+            workerThread.start();
+        }
+
+        String equation = "2+2";
+        requestQueue.add(equation);
+
+        double result = responseQueue.remove();
+        DAGNode dag = manager.getDag();
+        System.out.println("Number of Nodes = " + dag.getNumberOfNodes());
+        System.out.println("Answer = " + result);
+        System.out.println("Batches Sent For Execution = " + manager.getBatchCount());
+
+        // Shutdown
+        requestQueue.add(null);
+        managerThread.join();
     }
 
     private static void assignmentPart5() throws InterruptedException {
